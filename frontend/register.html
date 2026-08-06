@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register - EventHub</title>
+  <link rel="stylesheet" href="Style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="navbar container">
+      <a href="index.html" class="logo">Event<span>Hub</span></a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="register.html" class="active">Register</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="page-banner">
+    <h1>Register for an Event</h1>
+    <p>Fill in your details below and we'll save your spot.</p>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="form-wrapper">
+        <form id="registerForm">
+          <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <input type="text" id="fullName" name="fullName"/>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email"/>
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="eventSelect">Choose Event</label>
+            <select id="eventSelect">
+              <option value="" disabled selected>Select an event</option>
+              <option value="music-festival">City Music Festival — Aug 12, 2026</option>
+              <option value="web-bootcamp">Web Dev Bootcamp — Sep 3, 2026</option>
+              <option value="basketball-cup">Community Basketball Cup — Sep 20, 2026</option>
+              <option value="art-exhibition">Local Art Exhibition — Oct 5, 2026</option>
+              <option value="career-seminar">Career Guidance Seminar — Oct 18, 2026</option>
+              <option value="food-carnival">Street Food Carnival — Nov 2, 2026</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="tickets">Number of Tickets</label>
+            <input type="number" id="tickets" name="tickets" min="1" max="10" value="1"/>
+          </div>
+
+          <div class="form-group">
+            <label for="notes">Additional Notes (optional)</label>
+            <textarea id="notes" name="notes" rows="4"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Complete Registration</button>
+        </form>
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <h4>Event<span style="color:#ff7a59;">Hub</span></h4>
+        <p>Your simple, friendly way to find and manage events.</p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="register.html">Register</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li>EVENTHUB@GMIL.com</li>
+          <li>+977 9841111111</li>
+          <li>Pokhara, Nepal</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">EventHub.</div>
+  </footer>
+</body>
+</html>
