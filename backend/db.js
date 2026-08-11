@@ -1,27 +1,48 @@
 require('dotenv').config();
-const path = require('path');
-const sqlite3 = require('sqlite3');
-const { open } = require('sqlite');
+const { createClient } = require('@libsql/client');
 
-let dbInstance = null;
+let clientInstance = null;
+let dbWrapper = null;
 
 async function connectDB() {
-  if (dbInstance) {
-    return dbInstance;
+  if (dbWrapper) {
+    return dbWrapper;
   }
 
-  const dbFile = process.env.DB_FILE || 'database.db';
-  const dbPath = process.env.VERCEL || process.env.NODE_ENV === 'production'
-    ? path.join('/tmp', dbFile)
-    : path.join(__dirname, dbFile);
+  const url = process.env.TURSO_DATABASE_URL || 'file:database.db';
+  const authToken = process.env.TURSO_AUTH_TOKEN;
+
+  clientInstance = createClient({
+    url: url,
+    authToken: authToken,
+  });
+
+  dbWrapper = {
+    async get(sql, args = []) {
+      const res = await clientInstance.execute({ sql, args });
+      return res.rows[0] || null;
+    },
+
+    async all(sql, args = []) {
+      const res = await clientInstance.execute({ sql, args });
+      return res.rows;
+    },
+
+    async run(sql, args = []) {
+      const res = await clientInstance.execute({ sql, args });
+      return {
+        lastID: res.lastInsertRowid !== undefined ? Number(res.lastInsertRowid) : null,
+        changes: res.rowsAffected
+      };
+    },
+
+    async exec(sql) {
+      return await clientInstance.executeMultiple(sql);
+    }
+  };
 
   try {
-    dbInstance = await open({
-      filename: dbPath,
-      driver: sqlite3.Database
-    });
-
-    await dbInstance.exec(`
+    await dbWrapper.exec(`
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -42,8 +63,8 @@ async function connectDB() {
       );
     `);
 
-    console.log(`✅ Database connected successfully (${dbPath})`);
-    return dbInstance;
+    console.log('✅ Connected to Turso Database successfully');
+    return dbWrapper;
   } catch (error) {
     console.error('❌ Database connection failed:', error);
     throw error;

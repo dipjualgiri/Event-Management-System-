@@ -98,11 +98,25 @@ app.get('/api/registrations', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Could not fetch registrations.' });
   }
 });
+app.delete('/api/registrations/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const db = await connectDB();
+    await db.run('DELETE FROM registrations WHERE id = ?', [id]);
+
+    return res.json({ success: true, message: 'Registration removed successfully.' });
+  } catch (err) {
+    console.error('Delete registration error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to remove registration.' });
+  }
+});
 
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
   });
+
 }
 
 module.exports = app;
