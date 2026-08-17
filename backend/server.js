@@ -21,7 +21,8 @@ app.post('/api/signup', async (req, res) => {
 
   try {
     const db = await connectDB();
-    const existing = await db.get('SELECT id FROM users WHERE email = ?', [email]);
+    const cleanEmail = email.toLowerCase().trim();
+    const existing = await db.get('SELECT id FROM users WHERE email = ?', [cleanEmail]);
 
     if (existing) {
       return res.status(409).json({ success: false, message: 'That email is already registered.' });
@@ -30,13 +31,13 @@ app.post('/api/signup', async (req, res) => {
     const hashedPassword = bcrypt.hashSync(password, 10);
     await db.run(
       'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-      [name, email, hashedPassword]
+      [name.trim(), cleanEmail, hashedPassword]
     );
 
-    return res.json({ success: true, message: 'Account created!' });
+    return res.json({ success: true, message: 'Account created successfully!' });
   } catch (err) {
-    console.error('Signup error:', err);
-    return res.status(500).json({ success: false, message: 'Something went wrong.' });
+    console.error('Signup error:', err.message || err);
+    return res.status(500).json({ success: false, message: 'Database failure during signup: ' + (err.message || 'Unknown error') });
   }
 });
 
@@ -49,7 +50,8 @@ app.post('/api/login', async (req, res) => {
 
   try {
     const db = await connectDB();
-    const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await db.get('SELECT * FROM users WHERE email = ?', [cleanEmail]);
 
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
@@ -60,10 +62,14 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
-    return res.json({ success: true, message: `Welcome back, ${user.name}!` });
+    return res.json({
+      success: true,
+      message: `Welcome back, ${user.name}!`,
+      user: { id: user.id, name: user.name, email: user.email }
+    });
   } catch (err) {
-    console.error('Login error:', err);
-    return res.status(500).json({ success: false, message: 'Something went wrong.' });
+    console.error('Login error:', err.message || err);
+    return res.status(500).json({ success: false, message: 'Database failure during login: ' + (err.message || 'Unknown error') });
   }
 });
 
@@ -78,13 +84,20 @@ app.post('/api/register', async (req, res) => {
     const db = await connectDB();
     await db.run(
       'INSERT INTO registrations (full_name, email, phone, event, tickets, notes) VALUES (?, ?, ?, ?, ?, ?)',
-      [fullName, email, phone, event, tickets || 1, notes || '']
+      [
+        fullName.trim(),
+        email.toLowerCase().trim(),
+        phone.trim(),
+        event.trim(),
+        Number(tickets) || 1,
+        notes ? notes.trim() : ''
+      ]
     );
 
     return res.json({ success: true, message: 'Successfully registered for the event!' });
   } catch (err) {
-    console.error('Registration error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to complete registration.' });
+    console.error('Registration error:', err.message || err);
+    return res.status(500).json({ success: false, message: 'Database failure during registration: ' + (err.message || 'Unknown error') });
   }
 });
 
@@ -92,14 +105,19 @@ app.get('/api/registrations', async (req, res) => {
   try {
     const db = await connectDB();
     const registrations = await db.all('SELECT * FROM registrations ORDER BY id DESC');
-    return res.json({ success: true, registrations });
+    return res.json({ success: true, registrations: registrations || [] });
   } catch (err) {
-    console.error('Fetch registrations error:', err);
+    console.error('Fetch registrations error:', err.message || err);
     return res.status(500).json({ success: false, message: 'Could not fetch registrations.' });
   }
 });
+
 app.delete('/api/registrations/:id', async (req, res) => {
-  const { id } = req.params;
+  const id = Number(req.params.id);
+
+  if (!id || isNaN(id)) {
+    return res.status(400).json({ success: false, message: 'Invalid registration ID.' });
+  }
 
   try {
     const db = await connectDB();
@@ -107,16 +125,15 @@ app.delete('/api/registrations/:id', async (req, res) => {
 
     return res.json({ success: true, message: 'Registration removed successfully.' });
   } catch (err) {
-    console.error('Delete registration error:', err);
+    console.error('Delete registration error:', err.message || err);
     return res.status(500).json({ success: false, message: 'Failed to remove registration.' });
   }
 });
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
   });
-
 }
 
 module.exports = app;
