@@ -9,8 +9,13 @@ async function connectDB() {
     return dbWrapper;
   }
 
-  const url = process.env.TURSO_DATABASE_URL || 'file:database.db';
+  const url = process.env.TURSO_DATABASE_URL;
   const authToken = process.env.TURSO_AUTH_TOKEN;
+
+  // Fail early with a clear error if environment variables are missing
+  if (!url) {
+    throw new Error('TURSO_DATABASE_URL environment variable is missing.');
+  }
 
   clientInstance = createClient({
     url: url,
